@@ -117,3 +117,4 @@ def loop(scr, w, h):
         key = scr.getch()
 
 curses.wrapper(loop, 12, 12)
+print "Score: %d, moves: %d" % (score, moves)
