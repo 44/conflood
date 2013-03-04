@@ -49,7 +49,8 @@ def paint_elem(scr, fld, x, y, elem):
             has_flood_neigh = True
             ch = sym_map[elem]
             break
-    scr.addch(y, x, ord( ch ), curses.color_pair(elem))
+    scr.addch(y, x * 2, ord( ch ), curses.color_pair(elem))
+    scr.addch(y, x * 2 + 1, ' ', curses.color_pair(elem))
 
 def paint_field(scr, fld):
     import functools
