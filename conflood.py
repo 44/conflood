@@ -100,4 +100,4 @@ def loop(scr, w, h):
             paint_field(scr, field)
         key = scr.getch()
 
-curses.wrapper(loop, 13, 13)
+curses.wrapper(loop, 19, 19)
