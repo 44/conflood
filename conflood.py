@@ -69,18 +69,24 @@ def init_colors(scr):
         f, b = colors[c]
         curses.init_pair(c, f, b)
 
+def set_cur_color(color):
+    f, b = colors[color]
+    curses.init_pair(7, f, b)
+
 def loop(scr, w, h):
     init_colors(scr)
     field = generate_field(w,h)
     initial_color = field[1][1]
     field[1][1] = 7
     flood(field, initial_color)
+    set_cur_color(initial_color)
     paint_field(scr, field)
     key = scr.getch()
     while not key == ord('q'):
         if key >= ord('1') and key <= ord('6'):
             color = key - ord('0')
             flood(field, color)
+            set_cur_color(color)
             paint_field(scr, field)
         key = scr.getch()
 
