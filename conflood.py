@@ -1,6 +1,9 @@
 import curses
 import random
 
+score = 0
+points = 0
+
 sym_map = [ ' ', '1', '2', '3', '4', '5', '6', ' ' ]
 colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
     (curses.COLOR_YELLOW, curses.COLOR_RED),
@@ -53,8 +56,10 @@ def paint_elem(scr, fld, x, y, elem):
     scr.addch(y, x * 2 + 1, ' ', curses.color_pair(elem))
 
 def paint_field(scr, fld):
+    global score
     import functools
     scan(fld, False, functools.partial(paint_elem, scr, fld))
+    scr.addstr(23, 0, "Score: %d" % score)
     scr.refresh()
 
 def find_by_color(result, color, x, y, elem):
@@ -62,6 +67,8 @@ def find_by_color(result, color, x, y, elem):
         result.append( (x, y) )
 
 def flood(fld, color):
+    global score
+    global points
     import functools
     res = []
     scan(fld, True, functools.partial(find_by_color, res, 7))
@@ -72,6 +79,7 @@ def flood(fld, color):
         for nx, ny in neighs:
             if fld[ny][nx] == color:
                 res.append( (nx, ny) )
+                score = score + points
         res = res[1:]
 
 def init_colors(scr):
@@ -84,11 +92,13 @@ def set_cur_color(color):
     curses.init_pair(7, f, b)
 
 def loop(scr, w, h):
+    global points
     init_colors(scr)
     field = generate_field(w,h)
     initial_color = field[1][1]
     field[1][1] = 7
     flood(field, initial_color)
+    points = 50
     set_cur_color(initial_color)
     paint_field(scr, field)
     key = scr.getch()
@@ -98,6 +108,7 @@ def loop(scr, w, h):
             flood(field, color)
             set_cur_color(color)
             paint_field(scr, field)
+            points = points - 1
         key = scr.getch()
 
 curses.wrapper(loop, 19, 19)
