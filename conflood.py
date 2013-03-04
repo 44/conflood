@@ -76,12 +76,13 @@ def flood(fld, color):
     scan(fld, True, functools.partial(find_by_color, res, 7))
     while len(res) > 0:
         x, y = res[0]
+        if fld[y][x] == color:
+            score = score + points
         fld[y][x] = 7
         neighs = [ (x+1, y), (x-1, y), (x, y+1), (x, y-1) ]
         for nx, ny in neighs:
             if fld[ny][nx] == color:
                 res.append( (nx, ny) )
-                score = score + points
         res = res[1:]
 
 def init_colors(scr):
