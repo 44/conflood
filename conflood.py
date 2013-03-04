@@ -3,6 +3,7 @@ import random
 
 score = 0
 points = 0
+moves = 0
 
 sym_map = [ ' ', '1', '2', '3', '4', '5', '6', ' ' ]
 colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
@@ -57,9 +58,10 @@ def paint_elem(scr, fld, x, y, elem):
 
 def paint_field(scr, fld):
     global score
+    global moves
     import functools
     scan(fld, False, functools.partial(paint_elem, scr, fld))
-    scr.addstr(23, 0, "Score: %d" % score)
+    scr.addstr(23, 0, "Score: %d Moves: %d" % (score, moves))
     scr.refresh()
 
 def find_by_color(result, color, x, y, elem):
@@ -93,6 +95,7 @@ def set_cur_color(color):
 
 def loop(scr, w, h):
     global points
+    global moves
     init_colors(scr)
     field = generate_field(w,h)
     initial_color = field[1][1]
@@ -104,6 +107,7 @@ def loop(scr, w, h):
     key = scr.getch()
     while not key == ord('q'):
         if key >= ord('1') and key <= ord('6'):
+            moves = moves + 1
             color = key - ord('0')
             flood(field, color)
             set_cur_color(color)
@@ -111,4 +115,4 @@ def loop(scr, w, h):
             points = points - 1
         key = scr.getch()
 
-curses.wrapper(loop, 19, 19)
+curses.wrapper(loop, 12, 12)
