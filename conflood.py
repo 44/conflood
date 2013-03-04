@@ -43,14 +43,15 @@ def scan(fld, skip_border, func):
         for x in range(x_start, x_end):
             func(x, y, fld[y][x])
 
+def list_neighs(x, y):
+    return [ (x + 1, y), (x-1, y), (x, y+1), (x, y-1) ]
+
 def paint_elem(scr, fld, x, y, elem):
-    neighs = [ (x + 1, y), (x-1, y), (x, y+1), (x, y-1) ]
     ch = ' '
-    for nx, ny in neighs:
+    for nx, ny in list_neighs(x, y):
         if elem == 0:
             continue
         if fld[ny][nx] == 7:
-            has_flood_neigh = True
             ch = sym_map[elem]
             break
     scr.addch(y, x * 2, ord( ch ), curses.color_pair(elem))
@@ -79,8 +80,7 @@ def flood(fld, color):
         if fld[y][x] == color:
             score = score + points
         fld[y][x] = 7
-        neighs = [ (x+1, y), (x-1, y), (x, y+1), (x, y-1) ]
-        for nx, ny in neighs:
+        for nx, ny in list_neighs(x, y):
             if fld[ny][nx] == color:
                 res.append( (nx, ny) )
         res = res[1:]
