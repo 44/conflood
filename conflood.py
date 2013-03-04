@@ -73,17 +73,20 @@ def flood(fld, color):
     global score
     global points
     import functools
+    cnt = 0;
     res = []
     scan(fld, True, functools.partial(find_by_color, res, 7))
     while len(res) > 0:
         x, y = res[0]
         if fld[y][x] == color:
             score = score + points
+            cnt = cnt + 1
         fld[y][x] = 7
         for nx, ny in list_neighs(x, y):
             if fld[ny][nx] == color:
                 res.append( (nx, ny) )
         res = res[1:]
+    return cnt
 
 def init_colors(scr):
     for c in range(1,7):
@@ -108,12 +111,13 @@ def loop(scr, w, h):
     key = scr.getch()
     while not key == ord('q'):
         if key >= ord('1') and key <= ord('6'):
-            moves = moves + 1
             color = key - ord('0')
-            flood(field, color)
-            set_cur_color(color)
-            paint_field(scr, field)
-            points = points - 1
+            cnt = flood(field, color)
+            if cnt > 0:
+                set_cur_color(color)
+                moves = moves + 1
+                paint_field(scr, field)
+                points = points - 1
         key = scr.getch()
 
 curses.wrapper(loop, 12, 12)
