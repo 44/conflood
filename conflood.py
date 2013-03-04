@@ -39,12 +39,21 @@ def scan(fld, skip_border, func):
         for x in range(x_start, x_end):
             func(x, y, fld[y][x])
 
-def paint_elem(scr, x, y, elem):
-    scr.addch(y, x, ord( sym_map[elem] ), curses.color_pair(elem))
+def paint_elem(scr, fld, x, y, elem):
+    neighs = [ (x + 1, y), (x-1, y), (x, y+1), (x, y-1) ]
+    ch = ' '
+    for nx, ny in neighs:
+        if elem == 0:
+            continue
+        if fld[ny][nx] == 7:
+            has_flood_neigh = True
+            ch = sym_map[elem]
+            break
+    scr.addch(y, x, ord( ch ), curses.color_pair(elem))
 
 def paint_field(scr, fld):
     import functools
-    scan(fld, False, functools.partial(paint_elem, scr))
+    scan(fld, False, functools.partial(paint_elem, scr, fld))
     scr.refresh()
 
 def find_by_color(result, color, x, y, elem):
@@ -90,5 +99,4 @@ def loop(scr, w, h):
             paint_field(scr, field)
         key = scr.getch()
 
-
-curses.wrapper(loop, 13, 10)
+curses.wrapper(loop, 13, 13)
