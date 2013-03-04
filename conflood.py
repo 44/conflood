@@ -2,6 +2,13 @@ import curses
 import random
 
 sym_map = [ ' ', '1', '2', '3', '4', '5', '6', ' ' ]
+colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
+    (curses.COLOR_YELLOW, curses.COLOR_RED),
+    (curses.COLOR_YELLOW, curses.COLOR_GREEN),
+    (curses.COLOR_GREEN, curses.COLOR_YELLOW),
+    (curses.COLOR_CYAN, curses.COLOR_BLUE),
+    (curses.COLOR_BLUE, curses.COLOR_CYAN),
+    (curses.COLOR_CYAN, curses.COLOR_MAGENTA) ]
 
 def generate_field(w, h):
     result = []
@@ -58,12 +65,9 @@ def flood(fld, color):
         res = res[1:]
 
 def init_colors(scr):
-    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_RED)
-    curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_GREEN)
-    curses.init_pair(3, curses.COLOR_GREEN, curses.COLOR_YELLOW)
-    curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLUE)
-    curses.init_pair(5, curses.COLOR_BLUE, curses.COLOR_CYAN)
-    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_MAGENTA)
+    for c in range(1,7):
+        f, b = colors[c]
+        curses.init_pair(c, f, b)
 
 def loop(scr, w, h):
     init_colors(scr)
