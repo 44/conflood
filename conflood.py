@@ -1,5 +1,3 @@
-import curses
-
 from game import Game
 from display import CursesDisplay
 
@@ -24,9 +22,10 @@ class Control(object):
     def quit(self):
         return False
 
-def loop(scr, w, h):
-    display = CursesDisplay(scr)
+def on_start(w, h, display):
     control = Control(w, h, display)
     display.loop(control)
 
-curses.wrapper(loop, 5, 5)
+import functools
+CursesDisplay( functools.partial(on_start, 5, 5) )
+
