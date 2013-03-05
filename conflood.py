@@ -1,5 +1,4 @@
 from game import Game
-from display import CursesDisplay
 
 #def set_cur_color(color):
 #    f, b = colors[color]
@@ -27,5 +26,6 @@ def on_start(w, h, display):
     display.loop(control)
 
 import functools
-CursesDisplay( functools.partial(on_start, 5, 5) )
+import display
+display.start( functools.partial(on_start, 5, 5) )
 

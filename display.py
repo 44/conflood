@@ -1,11 +1,15 @@
 import curses
 
+def start_display(scr, cb):
+    display = CursesDisplay(scr)
+    cb(display)
+
+def start(cb):
+    curses.wrapper(start_display, cb)
+
 class CursesDisplay(object):
-    def __init__(self, start_callback):
-        def cb(scr):
-            self.scr = scr
-            start_callback(self)
-        curses.wrapper(cb)
+    def __init__(self, scr):
+        self.scr = scr
 
     def clear(self):
         colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
