@@ -14,6 +14,101 @@ colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
     (curses.COLOR_BLUE, curses.COLOR_CYAN),
     (curses.COLOR_CYAN, curses.COLOR_MAGENTA) ]
 
+class Game(object):
+    def __init__(self, w, h, display):
+        self.display = display
+        self.field = []
+        self.score = 0
+        self.moves = 0
+        self.point_per_cell = 50
+        for i in range(0, w + 2):
+            row = []
+            self.field.append(row)
+            for j in range(0, h + 2):
+                if i == 0 or i == w + 1:
+                    row.append(0)
+                elif j == 0 or j == h + 1:
+                    row.append(0)
+                else:
+                    row.append(random.randrange(1, 7))
+        pass
+
+    def start(self):
+        display.clear()
+        self._update_field()
+        self.display.update_hud(self.score, self.moves)
+
+    def move(self, color):
+        cnt = 0;
+        res = []
+        def _find_by_flood(x, y, color):
+            if color == 7:
+                res.append( (x, y) )
+        self._for_each_cell(False, _find_by_flood)
+        while len(res) > 0:
+            x, y = res[0]
+            if self.field[y][x] == color:
+                self.score = self.score + self.points
+                cnt = cnt + 1
+            self.field[y][x] = 7
+            for nx, ny in self._find_neighs(x, y):
+                if self.field[ny][nx] == color:
+                    res.append( (nx, ny) )
+            res = res[1:]
+        self._update_field()
+        self.display.update_hud(self.score, self.moves)
+        return cnt
+
+    def finished(self):
+        pass
+
+    def _find_neighs(self, x, y):
+        return [ (x + 1, y), (x-1, y), (x, y+1), (x, y-1) ]
+
+    def _for_each_cell(self, skip_border, func):
+        y_start = 0
+        y_end = len(self.field)
+        x_start = 0
+        x_end = len(self.field[0])
+        if skip_border:
+            y_start = 1
+            x_start = 1
+            x_end = x_end - 1
+            y_end = y_end - 1
+        for y in range(y_start, y_end):
+            for x in range(x_start, x_end):
+                func(x, y, self.field[y][x])
+
+    def _update_field(self):
+        def _update_cell(x, y, color):
+            ch = ' '
+            for nx, ny in self._find_neighs(x, y):
+                if color == 0:
+                    continue
+                if self.filed[ny][nx] == 7:
+                    ch = sym_map[color]
+                    break
+            self.display.paint_cell(x, y, color, ch)
+
+        self._for_each_cell(False, _update_cell)
+        pass
+
+
+class CursesDisplay(object):
+    def __init__(self, scr):
+        self.scr = scr
+        pass
+
+    def clear(self):
+        pass
+
+    def update_hud(self, score, moves):
+        self.scr.addstr(23, 0, "Score: %d Moves: %d" % (score, moves))
+
+    def paint_cell(self, x, y, color, caption):
+        scr.addch(y, x * 2, ord( caption ), curses.color_pair(color))
+        scr.addch(y, x * 2 + 1, ' ', curses.color_pair(color))
+
 def generate_field(w, h):
     result = []
     for i in range(0, w+2):
@@ -120,5 +215,5 @@ def loop(scr, w, h):
                 points = points - 1
         key = scr.getch()
 
-curses.wrapper(loop, 12, 12)
+curses.wrapper(loop, 21, 21)
 print "Score: %d, moves: %d" % (score, moves)
