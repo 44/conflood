@@ -132,6 +132,9 @@ def loop(scr, w, h):
         if key >= ord('1') and key <= ord('6'):
             color = key - ord('0')
             cnt = game.move(color)
+        elif key == ord('r'):
+            game = Game(w, h, display)
+            game.start()
         key = scr.getch()
 
 curses.wrapper(loop, 10, 10)
