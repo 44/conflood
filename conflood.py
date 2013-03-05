@@ -1,19 +1,6 @@
 import curses
 import random
 
-score = 0
-points = 0
-moves = 0
-
-sym_map = [ ' ', '1', '2', '3', '4', '5', '6', ' ' ]
-colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
-    (curses.COLOR_YELLOW, curses.COLOR_RED),
-    (curses.COLOR_YELLOW, curses.COLOR_GREEN),
-    (curses.COLOR_GREEN, curses.COLOR_YELLOW),
-    (curses.COLOR_CYAN, curses.COLOR_BLUE),
-    (curses.COLOR_BLUE, curses.COLOR_CYAN),
-    (curses.COLOR_CYAN, curses.COLOR_MAGENTA) ]
-
 class Game(object):
     def __init__(self, w, h, display):
         self.display = display
@@ -31,33 +18,46 @@ class Game(object):
                     row.append(0)
                 else:
                     row.append(random.randrange(1, 7))
-        pass
 
     def start(self):
-        display.clear()
+        self.display.clear()
+        initial_color = self.field[1][1]
+        self.field[1][1] = 7
+        res = self._find_cells_to_color(initial_color)
+        if res > 0:
+            for x, y in res:
+                self.field[y][x] = 7
         self._update_field()
         self.display.update_hud(self.score, self.moves)
 
-    def move(self, color):
-        cnt = 0;
+    def _find_cells_to_color(self, color):
         res = []
-        def _find_by_flood(x, y, color):
+        cells = []
+        def find_colored(x, y, color):
             if color == 7:
-                res.append( (x, y) )
-        self._for_each_cell(False, _find_by_flood)
-        while len(res) > 0:
-            x, y = res[0]
+                cells.append( (x, y) )
+        self._for_each_cell(False, find_colored)
+        while len(cells) > 0:
+            x, y = cells[0]
             if self.field[y][x] == color:
-                self.score = self.score + self.points
-                cnt = cnt + 1
-            self.field[y][x] = 7
+                res.append( (x, y) )
             for nx, ny in self._find_neighs(x, y):
-                if self.field[ny][nx] == color:
-                    res.append( (nx, ny) )
-            res = res[1:]
-        self._update_field()
-        self.display.update_hud(self.score, self.moves)
-        return cnt
+                if (self.field[ny][nx] == color) and (not (nx, ny) in res):
+                    cells.append( (nx, ny) )
+            cells = cells[1:]
+        return res
+
+    def move(self, color):
+        res = self._find_cells_to_color(color)
+        if len(res) > 0:
+            for x, y in res:
+                self.field[y][x] = 7
+            self.score = self.score + self.point_per_cell * len(res)
+            self.point_per_cell = self.point_per_cell - 1
+            self.moves = self.moves + 1
+            self._update_field()
+            self.display.update_hud(self.score, self.moves)
+        return len(res)
 
     def finished(self):
         pass
@@ -80,16 +80,16 @@ class Game(object):
                 func(x, y, self.field[y][x])
 
     def _update_field(self):
+        sym_map = [ ' ', '1', '2', '3', '4', '5', '6', ' ' ]
         def _update_cell(x, y, color):
             ch = ' '
             for nx, ny in self._find_neighs(x, y):
                 if color == 0:
                     continue
-                if self.filed[ny][nx] == 7:
+                if self.field[ny][nx] == 7:
                     ch = sym_map[color]
                     break
             self.display.paint_cell(x, y, color, ch)
-
         self._for_each_cell(False, _update_cell)
         pass
 
@@ -100,120 +100,38 @@ class CursesDisplay(object):
         pass
 
     def clear(self):
-        pass
+        colors = [(curses.COLOR_WHITE, curses.COLOR_BLACK),
+            (curses.COLOR_YELLOW, curses.COLOR_RED),
+            (curses.COLOR_YELLOW, curses.COLOR_GREEN),
+            (curses.COLOR_GREEN, curses.COLOR_YELLOW),
+            (curses.COLOR_CYAN, curses.COLOR_BLUE),
+            (curses.COLOR_BLUE, curses.COLOR_CYAN),
+            (curses.COLOR_CYAN, curses.COLOR_MAGENTA) ]
+        for c in range(1,7):
+            f, b = colors[c]
+            curses.init_pair(c, f, b)
 
     def update_hud(self, score, moves):
         self.scr.addstr(23, 0, "Score: %d Moves: %d" % (score, moves))
 
     def paint_cell(self, x, y, color, caption):
-        scr.addch(y, x * 2, ord( caption ), curses.color_pair(color))
-        scr.addch(y, x * 2 + 1, ' ', curses.color_pair(color))
+        self.scr.addch(y, x * 2, ord( caption ), curses.color_pair(color))
+        self.scr.addch(y, x * 2 + 1, ' ', curses.color_pair(color))
 
-def generate_field(w, h):
-    result = []
-    for i in range(0, w+2):
-        row = []
-        result.append(row)
-        for j in range(0, h+2):
-            if i == 0 or i == w + 1:
-                row.append(0)
-            elif j == 0 or j == h + 1:
-                row.append(0)
-            else:
-                row.append(random.randrange(1, 7))
-    return result
-
-def scan(fld, skip_border, func):
-    y_start = 0
-    y_end = len(fld)
-    x_start = 0
-    x_end = len(fld[0])
-    if skip_border:
-        y_start = 1
-        x_start = 1
-        x_end = x_end - 1
-        y_end = y_end - 1
-
-    for y in range(y_start, y_end):
-        for x in range(x_start, x_end):
-            func(x, y, fld[y][x])
-
-def list_neighs(x, y):
-    return [ (x + 1, y), (x-1, y), (x, y+1), (x, y-1) ]
-
-def paint_elem(scr, fld, x, y, elem):
-    ch = ' '
-    for nx, ny in list_neighs(x, y):
-        if elem == 0:
-            continue
-        if fld[ny][nx] == 7:
-            ch = sym_map[elem]
-            break
-    scr.addch(y, x * 2, ord( ch ), curses.color_pair(elem))
-    scr.addch(y, x * 2 + 1, ' ', curses.color_pair(elem))
-
-def paint_field(scr, fld):
-    global score
-    global moves
-    import functools
-    scan(fld, False, functools.partial(paint_elem, scr, fld))
-    scr.addstr(23, 0, "Score: %d Moves: %d" % (score, moves))
-    scr.refresh()
-
-def find_by_color(result, color, x, y, elem):
-    if (color == elem):
-        result.append( (x, y) )
-
-def flood(fld, color):
-    global score
-    global points
-    import functools
-    cnt = 0;
-    res = []
-    scan(fld, True, functools.partial(find_by_color, res, 7))
-    while len(res) > 0:
-        x, y = res[0]
-        if fld[y][x] == color:
-            score = score + points
-            cnt = cnt + 1
-        fld[y][x] = 7
-        for nx, ny in list_neighs(x, y):
-            if fld[ny][nx] == color:
-                res.append( (nx, ny) )
-        res = res[1:]
-    return cnt
-
-def init_colors(scr):
-    for c in range(1,7):
-        f, b = colors[c]
-        curses.init_pair(c, f, b)
-
-def set_cur_color(color):
-    f, b = colors[color]
-    curses.init_pair(7, f, b)
+#def set_cur_color(color):
+#    f, b = colors[color]
+#    curses.init_pair(7, f, b)
 
 def loop(scr, w, h):
-    global points
-    global moves
-    init_colors(scr)
-    field = generate_field(w,h)
-    initial_color = field[1][1]
-    field[1][1] = 7
-    flood(field, initial_color)
-    points = 50
-    set_cur_color(initial_color)
-    paint_field(scr, field)
+    display = CursesDisplay(scr)
+    game = Game(w, h, display)
+    game.start()
+
     key = scr.getch()
     while not key == ord('q'):
         if key >= ord('1') and key <= ord('6'):
             color = key - ord('0')
-            cnt = flood(field, color)
-            if cnt > 0:
-                set_cur_color(color)
-                moves = moves + 1
-                paint_field(scr, field)
-                points = points - 1
+            cnt = game.move(color)
         key = scr.getch()
 
-curses.wrapper(loop, 21, 21)
-print "Score: %d, moves: %d" % (score, moves)
+curses.wrapper(loop, 10, 10)
