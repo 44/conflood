@@ -50,7 +50,7 @@ class Game(object):
         if len(res) > 0:
             for x, y in res:
                 self.field[y][x] = 7
-            self.score = self.score + self.point_per_cell * len(res)
+            self.score = self.score + len(res) * len(res) #self.point_per_cell * len(res)
             self.point_per_cell = self.point_per_cell - 1
             self.moves = self.moves + 1
             self._update_field()

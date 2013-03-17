@@ -28,5 +28,5 @@ def on_start(w, h, display):
 
 import functools
 import display
-display.start( functools.partial(on_start, 5, 5) )
+display.start( functools.partial(on_start, 15, 15) )
 
