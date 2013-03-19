@@ -23,8 +23,8 @@ class CursesDisplay(object):
             f, b = colors[c]
             curses.init_pair(c, f, b)
 
-    def update_hud(self, score, moves):
-        self.scr.addstr(23, 0, "Score: %d Moves: %d" % (score, moves))
+    def update_hud(self, score, moves, last_move):
+        self.scr.addstr(23, 0, "Score: %d Moves: %d, Last move: %d                          " % (score, moves, last_move))
 
     def paint_cell(self, x, y, color, caption):
         self.scr.addch(y, x * 2, ord( caption ), curses.color_pair(color))

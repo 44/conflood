@@ -26,7 +26,7 @@ class Game(object):
             for x, y in res:
                 self.field[y][x] = 7
         self._update_field()
-        self.display.update_hud(self.score, self.moves)
+        self.display.update_hud(self.score, self.moves, 0)
 
     def _find_cells_to_color(self, color):
         res = []
@@ -37,7 +37,7 @@ class Game(object):
         self._for_each_cell(False, find_colored)
         while len(cells) > 0:
             x, y = cells[0]
-            if self.field[y][x] == color:
+            if (self.field[y][x] == color) and (not (x, y) in res):
                 res.append( (x, y) )
             for nx, ny in self._find_neighs(x, y):
                 if (self.field[ny][nx] == color) and (not (nx, ny) in res):
@@ -50,11 +50,20 @@ class Game(object):
         if len(res) > 0:
             for x, y in res:
                 self.field[y][x] = 7
-            self.score = self.score + len(res) * len(res) #self.point_per_cell * len(res)
+            found = [False]
+            def find_by_color(x, y, clr):
+                if color == clr:
+                    found[0] = True
+            self._for_each_cell(True, find_by_color)
+            move_score = len(res) * len(res)
+            if not found[0]:
+                if self.moves < 50:
+                    move_score = move_score * ((50 - self.moves) / 5)
+            self.score = self.score + move_score
             self.point_per_cell = self.point_per_cell - 1
             self.moves = self.moves + 1
             self._update_field()
-            self.display.update_hud(self.score, self.moves)
+            self.display.update_hud(self.score, self.moves, move_score)
         return len(res)
 
     def finished(self):
